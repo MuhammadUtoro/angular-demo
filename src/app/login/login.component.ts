@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import {
-  FormControl,
+  FormBuilder,
   FormGroup,
   ReactiveFormsModule,
   Validators,
@@ -11,6 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-login',
@@ -28,17 +29,28 @@ import { RouterModule } from '@angular/router';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  loginForm = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [Validators.required]),
-  });
+  loginForm: FormGroup;
 
-  submit() {
+  constructor(private fb: FormBuilder, private userService: UserService) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+    });
+  }
+
+  submit(): void {
     if (this.loginForm.invalid) {
       return;
     }
-
-    const username = this.loginForm.get('username')?.value;
-    const password = this.loginForm.get('password')?.value;
+    const { email, password } = this.loginForm.value;
+    this.userService.login(email, password).subscribe((user) => {
+      if (user) {
+        console.log('Login success', user);
+        alert(`Welcome, ${user.email}`);
+      } else {
+        console.log('Login failed!');
+        alert('Invalid email or password!');
+      }
+    });
   }
 }
